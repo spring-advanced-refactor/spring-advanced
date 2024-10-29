@@ -36,9 +36,7 @@ public class ManagerService {
         // 일정을 만든 유저
         User user = User.fromAuthUser(authUser);
         Todo todo = todoService.findByIdOrFail(todoId);
-        if (!ObjectUtils.nullSafeEquals(user.getId(), todo.getUser().getId())) {
-            throw new InvalidRequestException("담당자를 등록하려고 하는 유저가 일정을 만든 유저가 유효하지 않습니다.");
-        }
+        todo.validateTodoOwner(user);
         User managerUser = userRepository.findById(managerSaveRequest.getManagerUserId())
                 .orElseThrow(() -> new InvalidRequestException("등록하려고 하는 담당자 유저가 존재하지 않습니다."));
         if (ObjectUtils.nullSafeEquals(user.getId(), managerUser.getId())) {
@@ -72,9 +70,7 @@ public class ManagerService {
     public void deleteManager(long userId, long todoId, long managerId) {
         User user = userService.findByIdOrFail(userId);
         Todo todo = todoService.findByIdOrFail(todoId);
-        if (todo.getUser() == null || !ObjectUtils.nullSafeEquals(user.getId(), todo.getUser().getId())) {
-            throw new InvalidRequestException("해당 일정을 만든 유저가 유효하지 않습니다.");
-        }
+        todo.validateTodoOwner(user);
         Manager manager = findByIdOrFail(managerId);
         if (!ObjectUtils.nullSafeEquals(todo.getId(), manager.getTodo().getId())) {
             throw new InvalidRequestException("해당 일정에 등록된 담당자가 아닙니다.");
