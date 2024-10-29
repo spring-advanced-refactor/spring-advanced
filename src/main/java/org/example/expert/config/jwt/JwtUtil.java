@@ -1,13 +1,12 @@
-package org.example.expert.config;
+package org.example.expert.config.jwt;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.example.expert.ex.ServerException;
 import org.example.expert.domain.user.enums.UserRole;
+import org.example.expert.ex.CustomJwtException;
+import org.example.expert.ex.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -49,17 +48,34 @@ public class JwtUtil {
     }
 
     public String substringToken(String tokenValue) {
-        if (StringUtils.hasText(tokenValue) && tokenValue.startsWith(BEARER_PREFIX)) {
-            return tokenValue.substring(7);
+        if (!StringUtils.hasText(tokenValue)) {
+            throw new CustomJwtException(ErrorCode.TOKEN_NOT_FOUND);
         }
-        throw new ServerException("Not Found Token");
+        if (!tokenValue.startsWith(BEARER_PREFIX)) {
+            throw new CustomJwtException(ErrorCode.INVALID_TOKEN);
+        }
+        return tokenValue.substring(7);
     }
 
     public Claims extractClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(key)
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(key)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (SecurityException | MalformedJwtException | SignatureException e) {
+            log.warn("Invalid JWT signature: 유효하지 않은 JWT 서명");
+            throw new CustomJwtException(ErrorCode.INVALID_TOKEN_SIGNATURE);
+        } catch (ExpiredJwtException e) {
+            log.warn("Expired JWT token: 만료된 JWT 토큰");
+            throw new CustomJwtException(ErrorCode.EXPIRED_TOKEN);
+        } catch (UnsupportedJwtException e) {
+            log.warn("Unsupported JWT token: 지원되지 않는 JWT 토큰");
+            throw new CustomJwtException(ErrorCode.UNSUPPORTED_TOKEN);
+        } catch (IllegalArgumentException e) {
+            log.warn("JWT claims is empty: 잘못된 JWT 토큰");
+            throw new CustomJwtException(ErrorCode.INVALID_TOKEN);
+        }
     }
 }

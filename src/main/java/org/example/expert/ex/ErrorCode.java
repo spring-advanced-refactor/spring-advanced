@@ -21,7 +21,13 @@ public enum ErrorCode {
     USER_NEW_PASSWORD_SAME_AS_CURRENT(HttpStatus.BAD_REQUEST.value(), "새 비밀번호는 기존 비밀번호와 같을 수 없습니다"),
     USER_CURRENT_PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST.value(), "비밀번호가 일치하지 않습니다"),
     INVALID_USER_ROLE(HttpStatus.BAD_REQUEST.value(), "유효하지 않은 유저 권한입니다"),
-    USER_EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "이미 존재하는 이메일입니다");
+    USER_EMAIL_ALREADY_EXISTS(HttpStatus.BAD_REQUEST.value(), "이미 존재하는 이메일입니다"),
+    TODO_CREATOR_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "해당 일정을 만든 유저가 존재하지 않습니다"),
+    TOTAL_WEATHER_DATA_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR.value(), "전체 날씨 데이터가 없습니다"),
+    FAILED_TO_GET_WEATHER_DATA(HttpStatus.INTERNAL_SERVER_ERROR.value(), "날씨 데이터를 가져오는데 실패했습니다"),
+    TODAY_WEATHER_DATA_NOT_FOUND(HttpStatus.INTERNAL_SERVER_ERROR.value(), "오늘에 해당하는 날씨 데이터를 가져오는데 실패했습니다"),
+    TOKEN_NOT_FOUND(400, "토큰을 찾을 수 없습니다");
+
 
     private final String msg;
     private final int status;

@@ -1,5 +1,6 @@
 package org.example.expert.domain.user.enums;
 
+import org.example.expert.ex.ErrorCode;
 import org.example.expert.ex.InvalidRequestException;
 
 import java.util.Arrays;
@@ -11,6 +12,6 @@ public enum UserRole {
         return Arrays.stream(UserRole.values())
                 .filter(r -> r.name().equalsIgnoreCase(role))
                 .findFirst()
-                .orElseThrow(() -> new InvalidRequestException("유효하지 않은 UerRole"));
+                .orElseThrow(() -> new InvalidRequestException(ErrorCode.INVALID_USER_ROLE));
     }
 }
