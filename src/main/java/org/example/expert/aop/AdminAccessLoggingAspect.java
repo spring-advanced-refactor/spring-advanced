@@ -8,19 +8,22 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.example.expert.domain.common.dto.AuthUser;
 import org.example.expert.domain.log.admin.AdminAccessLog;
 import org.example.expert.domain.log.admin.AdminAccessLogRepository;
 import org.example.expert.domain.user.entity.User;
 import org.example.expert.util.CustomUtil;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.io.IOException;
+import java.lang.reflect.Parameter;
 import java.time.LocalDateTime;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
 
 @Aspect
 @Component
@@ -66,7 +69,7 @@ public class AdminAccessLoggingAspect {
         Long userId = (Long) request.getAttribute("userId");
         User user = User.fromAuthUser(new AuthUser(userId, null, null));
         LocalDateTime accessTime = LocalDateTime.now();
-        String requestBody = getRequestBody(request);
+        String requestBody = getRequestBody(joinPoint);
 
         //관리자가 요청한 메서드 실행
         Object result = joinPoint.proceed();
@@ -86,12 +89,25 @@ public class AdminAccessLoggingAspect {
         return result;
     }
 
-    private String getRequestBody(HttpServletRequest request) {
+    private String getRequestBody(ProceedingJoinPoint joinPoint) {
+        Map<String, Object> requestMap = new HashMap<>();
+        Object[] args = joinPoint.getArgs();
+        MethodSignature signature = (MethodSignature) joinPoint.getSignature();
+        Parameter[] parameters = signature.getMethod().getParameters();
+
         try {
-            String body = request.getReader().lines()
-                    .collect(Collectors.joining(System.lineSeparator()));
-            return StringUtils.hasText(body) ? body : null;
-        } catch (IOException | IllegalStateException e) {
+            for (int i = 0; i < parameters.length; i++) {
+                Parameter parameter = parameters[i];
+                Object arg = args[i];
+                if (parameter.getAnnotation(RequestBody.class) != null) {
+                    requestMap.put("requestBody", CustomUtil.convertToJson(arg));
+                }
+                if (parameter.getAnnotation(ModelAttribute.class) != null) {
+                    requestMap.put("modelAttribute", CustomUtil.convertToJson(arg));
+                }
+            }
+            return CustomUtil.convertToJson(requestMap);
+        } catch (JsonProcessingException e) {
             log.warn("요청 바디 본문을 읽는 중 오류 발생: {}", e.getMessage(), e);
             return null;
         }
