@@ -1,7 +1,6 @@
 package org.example.expert.domain.manager.service;
 
 import org.example.expert.domain.common.dto.AuthUser;
-import org.example.expert.ex.InvalidRequestException;
 import org.example.expert.domain.manager.dto.request.ManagerSaveRequest;
 import org.example.expert.domain.manager.dto.response.ManagerResponse;
 import org.example.expert.domain.manager.dto.response.ManagerSaveResponse;
@@ -9,9 +8,12 @@ import org.example.expert.domain.manager.entity.Manager;
 import org.example.expert.domain.manager.repository.ManagerRepository;
 import org.example.expert.domain.todo.entity.Todo;
 import org.example.expert.domain.todo.repository.TodoRepository;
+import org.example.expert.domain.todo.service.TodoService;
 import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.enums.UserRole;
 import org.example.expert.domain.user.repository.UserRepository;
+import org.example.expert.ex.InvalidRequestException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -35,18 +37,24 @@ class ManagerServiceTest {
     private UserRepository userRepository;
     @Mock
     private TodoRepository todoRepository;
+
+    @Mock
+    private TodoService todoService;
     @InjectMocks
     private ManagerService managerService;
 
     @Test
-    public void manager_목록_조회_시_Todo가_없다면_NPE_에러를_던진다() {
+    @DisplayName("Manager 목록 조회 시 Todo가 없다면 예외 발생")
+    public void getManagers_시_Todo가_없다면_예외가_발생한다() {
         // given
         long todoId = 1L;
-        given(todoRepository.findById(todoId)).willReturn(Optional.empty());
+        given(todoService.findByIdOrFail(todoId))
+                .willThrow(new InvalidRequestException("Todo Not Found"));
 
         // when & then
-        InvalidRequestException exception = assertThrows(InvalidRequestException.class, () -> managerService.getManagers(todoId));
-        assertEquals("Manager not found", exception.getMessage());
+        InvalidRequestException exception = assertThrows(
+                InvalidRequestException.class, () -> managerService.getManagers(todoId));
+        assertEquals("Todo Not Found", exception.getMessage());
     }
 
     @Test
@@ -65,7 +73,7 @@ class ManagerServiceTest {
 
         // when & then
         InvalidRequestException exception = assertThrows(InvalidRequestException.class, () ->
-            managerService.saveManager(authUser, todoId, managerSaveRequest)
+                managerService.saveManager(authUser, todoId, managerSaveRequest)
         );
 
         assertEquals("담당자를 등록하려고 하는 유저가 일정을 만든 유저가 유효하지 않습니다.", exception.getMessage());
@@ -94,7 +102,8 @@ class ManagerServiceTest {
         assertEquals(mockManager.getUser().getEmail(), managerResponses.get(0).getUser().getEmail());
     }
 
-    @Test // 테스트코드 샘플
+    @Test
+        // 테스트코드 샘플
     void todo가_정상적으로_등록된다() {
         // given
         AuthUser authUser = new AuthUser(1L, "a@a.com", UserRole.USER);
