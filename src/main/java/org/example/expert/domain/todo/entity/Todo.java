@@ -50,6 +50,9 @@ public class Todo extends Timestamped {
     }
 
     public void validateTodoOwner(User user) {
+        if (this.user == null) {
+            throw new InvalidRequestException("해당 일정을 만든 유저가 존재하지 않습니다");
+        }
         if (!ObjectUtils.nullSafeEquals(user.getId(), this.getUser().getId())) {
             throw new InvalidRequestException("해당 일정을 만든 유저가 아닙니다");
         }
