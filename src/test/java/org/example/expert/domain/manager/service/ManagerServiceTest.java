@@ -58,7 +58,8 @@ class ManagerServiceTest {
     }
 
     @Test
-    void todo의_user가_null인_경우_예외가_발생한다() {
+    @DisplayName("담당자 배정 시 Todo를 만든 유저가 존재하지 않으면 예외 발생")
+    void saveManager_시_Todo를_만든_user가_null일_때__예외가_발생한다() {
         // given
         AuthUser authUser = new AuthUser(1L, "a@a.com", UserRole.USER);
         long todoId = 1L;
@@ -69,14 +70,14 @@ class ManagerServiceTest {
 
         ManagerSaveRequest managerSaveRequest = new ManagerSaveRequest(managerUserId);
 
-        given(todoRepository.findById(todoId)).willReturn(Optional.of(todo));
+        given(todoService.findByIdOrFail(todoId)).willReturn(todo);
 
         // when & then
         InvalidRequestException exception = assertThrows(InvalidRequestException.class, () ->
                 managerService.saveManager(authUser, todoId, managerSaveRequest)
         );
 
-        assertEquals("담당자를 등록하려고 하는 유저가 일정을 만든 유저가 유효하지 않습니다.", exception.getMessage());
+        assertEquals("해당 일정을 만든 유저가 존재하지 않습니다", exception.getMessage());
     }
 
     @Test // 테스트코드 샘플
