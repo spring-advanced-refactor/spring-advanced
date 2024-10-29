@@ -1,4 +1,4 @@
-package org.example.expert.domain.common.annotation;
+package org.example.expert.config.auth.valid;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

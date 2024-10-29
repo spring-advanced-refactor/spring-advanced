@@ -1,5 +1,6 @@
 package org.example.expert.config;
 
+import org.example.expert.config.auth.PasswordEncoder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -3,11 +3,10 @@ package org.example.expert.ex;
 import lombok.Getter;
 
 @Getter
-public class ServerException extends RuntimeException {
-
+public class CustomJwtException extends RuntimeException {
     private final ErrorCode errorCode;
 
-    public ServerException(ErrorCode errorCode) {
+    public CustomJwtException(ErrorCode errorCode) {
         super(errorCode.getMsg());
         this.errorCode = errorCode;
     }

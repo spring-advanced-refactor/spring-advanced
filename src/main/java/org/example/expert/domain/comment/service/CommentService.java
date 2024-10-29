@@ -14,7 +14,6 @@ import org.example.expert.domain.user.entity.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,33 +28,14 @@ public class CommentService {
     public CommentSaveResponse saveComment(AuthUser authUser, long todoId, CommentSaveRequest commentSaveRequest) {
         User user = User.fromAuthUser(authUser);
         Todo todo = todoService.findByIdOrFail(todoId);
-        Comment newComment = new Comment(
-                commentSaveRequest.getContents(),
-                user,
-                todo
-        );
-        Comment savedComment = commentRepository.save(newComment);
+        Comment savedComment = commentRepository.save(commentSaveRequest.toEntity(user, todo));
 
-        return new CommentSaveResponse(
-                savedComment.getId(),
-                savedComment.getContents(),
-                new UserResponse(user.getId(), user.getEmail())
-        );
+        return new CommentSaveResponse(savedComment, new UserResponse(user));
     }
 
     public List<CommentResponse> getComments(long todoId) {
-        List<Comment> commentList = commentRepository.findByTodoIdWithUser(todoId);
-        List<CommentResponse> dtoList = new ArrayList<>();
-        for (Comment comment : commentList) {
-            User user = comment.getUser();
-            CommentResponse dto = new CommentResponse(
-                    comment.getId(),
-                    comment.getContents(),
-                    new UserResponse(user.getId(), user.getEmail())
-            );
-            dtoList.add(dto);
-        }
-
-        return dtoList;
+        return commentRepository.findByTodoIdWithUser(todoId).stream()
+                .map(comment -> new CommentResponse(comment, new UserResponse(comment.getUser())))
+                .toList();
     }
 }

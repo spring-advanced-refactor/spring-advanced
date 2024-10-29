@@ -1,12 +1,14 @@
 package org.example.expert.domain.todo.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.example.expert.domain.comment.entity.Comment;
 import org.example.expert.domain.common.entity.Timestamped;
 import org.example.expert.domain.manager.entity.Manager;
 import org.example.expert.domain.user.entity.User;
+import org.example.expert.ex.ErrorCode;
 import org.example.expert.ex.InvalidRequestException;
 import org.springframework.util.ObjectUtils;
 
@@ -36,6 +38,7 @@ public class Todo extends Timestamped {
     @OneToMany(mappedBy = "todo", cascade = CascadeType.PERSIST)
     private List<Manager> managers = new ArrayList<>();
 
+    @Builder
     public Todo(String title, String contents, String weather, User user) {
         this.title = title;
         this.contents = contents;
@@ -51,10 +54,16 @@ public class Todo extends Timestamped {
 
     public void validateTodoOwner(User user) {
         if (this.user == null) {
-            throw new InvalidRequestException("해당 일정을 만든 유저가 존재하지 않습니다");
+            throw new InvalidRequestException(ErrorCode.TODO_CREATOR_NOT_FOUND);
         }
         if (!ObjectUtils.nullSafeEquals(user.getId(), this.getUser().getId())) {
-            throw new InvalidRequestException("해당 일정을 만든 유저가 아닙니다");
+            throw new InvalidRequestException(ErrorCode.TODO_CREATOR_PERMISSION_DENIED);
+        }
+    }
+
+    public void validateNotSelfAssignment(Long userId) {
+        if (ObjectUtils.nullSafeEquals(this.user.getId(), userId)) {
+            throw new InvalidRequestException(ErrorCode.TODO_CREATOR_SELF_ASSIGNMENT_INVALID);
         }
     }
 }
