@@ -5,8 +5,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.example.expert.domain.common.entity.Timestamped;
-import org.example.expert.domain.user.entity.User;
+import org.example.expert.domain.common.Timestamped;
+import org.example.expert.domain.user.User;
 
 import java.time.LocalDateTime;
 

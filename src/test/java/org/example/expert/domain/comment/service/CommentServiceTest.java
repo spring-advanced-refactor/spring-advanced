@@ -1,15 +1,16 @@
 package org.example.expert.domain.comment.service;
 
-import org.example.expert.domain.comment.dto.request.CommentSaveRequest;
-import org.example.expert.domain.comment.dto.response.CommentSaveResponse;
-import org.example.expert.domain.comment.entity.Comment;
-import org.example.expert.domain.comment.repository.CommentRepository;
-import org.example.expert.domain.common.dto.AuthUser;
-import org.example.expert.domain.todo.entity.Todo;
-import org.example.expert.domain.todo.repository.TodoRepository;
-import org.example.expert.domain.todo.service.TodoService;
-import org.example.expert.domain.user.entity.User;
-import org.example.expert.domain.user.enums.UserRole;
+import org.example.expert.domain.comment.Comment;
+import org.example.expert.domain.comment.CommentRepository;
+import org.example.expert.service.comment.CommentService;
+import org.example.expert.domain.user.dto.AuthUser;
+import org.example.expert.domain.todo.Todo;
+import org.example.expert.domain.todo.TodoRepository;
+import org.example.expert.service.TodoService;
+import org.example.expert.domain.user.User;
+import org.example.expert.domain.user.UserRole;
+import org.example.expert.dto.comment.request.CommentSaveRequest;
+import org.example.expert.dto.comment.response.CommentSaveResponse;
 import org.example.expert.ex.InvalidRequestException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
