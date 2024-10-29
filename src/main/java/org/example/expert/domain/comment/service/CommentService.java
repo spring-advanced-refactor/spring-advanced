@@ -31,13 +31,11 @@ public class CommentService {
         User user = User.fromAuthUser(authUser);
         Todo todo = todoRepository.findById(todoId).orElseThrow(() ->
                 new InvalidRequestException("Todo not found"));
-
         Comment newComment = new Comment(
                 commentSaveRequest.getContents(),
                 user,
                 todo
         );
-
         Comment savedComment = commentRepository.save(newComment);
 
         return new CommentSaveResponse(
@@ -49,7 +47,6 @@ public class CommentService {
 
     public List<CommentResponse> getComments(long todoId) {
         List<Comment> commentList = commentRepository.findByTodoIdWithUser(todoId);
-
         List<CommentResponse> dtoList = new ArrayList<>();
         for (Comment comment : commentList) {
             User user = comment.getUser();
@@ -60,6 +57,7 @@ public class CommentService {
             );
             dtoList.add(dto);
         }
+
         return dtoList;
     }
 }
