@@ -8,7 +8,6 @@ import org.example.expert.domain.comment.entity.Comment;
 import org.example.expert.domain.comment.repository.CommentRepository;
 import org.example.expert.domain.common.dto.AuthUser;
 import org.example.expert.domain.todo.entity.Todo;
-import org.example.expert.domain.todo.repository.TodoRepository;
 import org.example.expert.domain.todo.service.TodoService;
 import org.example.expert.domain.user.dto.response.UserResponse;
 import org.example.expert.domain.user.entity.User;
@@ -23,7 +22,6 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class CommentService {
 
-    private final TodoRepository todoRepository;
     private final CommentRepository commentRepository;
     private final TodoService todoService;
 
