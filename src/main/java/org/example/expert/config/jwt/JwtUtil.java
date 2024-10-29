@@ -4,7 +4,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.example.expert.domain.user.enums.UserRole;
+import org.example.expert.domain.user.UserRole;
 import org.example.expert.ex.CustomJwtException;
 import org.example.expert.ex.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;

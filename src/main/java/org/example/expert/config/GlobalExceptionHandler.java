@@ -1,6 +1,6 @@
 package org.example.expert.config;
 
-import org.example.expert.domain.auth.exception.AuthException;
+import org.example.expert.ex.AuthException;
 import org.example.expert.ex.InvalidRequestException;
 import org.example.expert.ex.ServerException;
 import org.example.expert.util.api.ApiError;
