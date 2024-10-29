@@ -8,7 +8,7 @@ import org.example.expert.domain.auth.dto.request.SignupRequest;
 import org.example.expert.domain.auth.dto.response.SigninResponse;
 import org.example.expert.domain.auth.dto.response.SignupResponse;
 import org.example.expert.domain.auth.exception.AuthException;
-import org.example.expert.domain.common.exception.InvalidRequestException;
+import org.example.expert.ex.InvalidRequestException;
 import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.enums.UserRole;
 import org.example.expert.domain.user.repository.UserRepository;
