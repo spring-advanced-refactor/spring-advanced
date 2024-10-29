@@ -5,11 +5,13 @@ import org.example.expert.domain.comment.dto.response.CommentSaveResponse;
 import org.example.expert.domain.comment.entity.Comment;
 import org.example.expert.domain.comment.repository.CommentRepository;
 import org.example.expert.domain.common.dto.AuthUser;
-import org.example.expert.ex.ServerException;
 import org.example.expert.domain.todo.entity.Todo;
 import org.example.expert.domain.todo.repository.TodoRepository;
+import org.example.expert.domain.todo.service.TodoService;
 import org.example.expert.domain.user.entity.User;
 import org.example.expert.domain.user.enums.UserRole;
+import org.example.expert.ex.InvalidRequestException;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,25 +32,30 @@ class CommentServiceTest {
     private CommentRepository commentRepository;
     @Mock
     private TodoRepository todoRepository;
+
+    @Mock
+    private TodoService todoService;
     @InjectMocks
     private CommentService commentService;
 
     @Test
-    public void comment_등록_중_할일을_찾지_못해_에러가_발생한다() {
+    @DisplayName("Comment 등록 시 대상이 되는 Todo를 찾지 못하면 예외 발생")
+    public void saveComment_시_Todo가_없다면_예외가_발생한다() {
         // given
         long todoId = 1;
         CommentSaveRequest request = new CommentSaveRequest("contents");
         AuthUser authUser = new AuthUser(1L, "email", UserRole.USER);
 
-        given(todoRepository.findById(anyLong())).willReturn(Optional.empty());
+        given(todoService.findByIdOrFail(todoId))
+                .willThrow(new InvalidRequestException("Todo Not Found"));
 
         // when
-        ServerException exception = assertThrows(ServerException.class, () -> {
+        InvalidRequestException exception = assertThrows(InvalidRequestException.class, () -> {
             commentService.saveComment(authUser, todoId, request);
         });
 
         // then
-        assertEquals("Todo not found", exception.getMessage());
+        assertEquals("Todo Not Found", exception.getMessage());
     }
 
     @Test
