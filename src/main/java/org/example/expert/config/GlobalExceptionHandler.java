@@ -17,6 +17,11 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResult<ApiError>> handleGeneralException(Exception e) {
+        return new ResponseEntity<>(ApiResult.error(HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResult<Map<String, String>>> validationException(MethodArgumentNotValidException e) {
         Map<String, String> errorMap = new HashMap<>();
@@ -31,7 +36,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InvalidRequestException.class)
-    public ResponseEntity<ApiResult<ApiError>> invalidRequestExceptionException(InvalidRequestException ex) {
+    public ResponseEntity<ApiResult<ApiError>> handleInvalidRequestException(InvalidRequestException ex) {
         return new ResponseEntity<>(ApiResult.error(ex.getErrorCode().getStatus(), ex.getErrorCode().getMsg()), HttpStatus.BAD_REQUEST);
     }
 
@@ -43,10 +48,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ServerException.class)
-    public ResponseEntity<Map<String, Object>> handleServerException(ServerException ex) {
-        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+    public ResponseEntity<ApiResult<ApiError>> handleServerException(ServerException ex) {
+        return new ResponseEntity<>(ApiResult.error(ex.getErrorCode().getStatus(), ex.getErrorCode().getMsg()), HttpStatus.BAD_REQUEST);
 
-        return getErrorResponse(status, ex.getMessage());
     }
 
     public ResponseEntity<Map<String, Object>> getErrorResponse(HttpStatus status, String message) {
