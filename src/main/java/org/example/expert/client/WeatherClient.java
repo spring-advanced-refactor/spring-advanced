@@ -53,6 +53,7 @@ public class WeatherClient {
 
     private String getCurrentDate() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd");
+
         return LocalDate.now().format(formatter);
     }
 }
