@@ -7,6 +7,8 @@ import org.example.expert.domain.auth.dto.request.SignupRequest;
 import org.example.expert.domain.auth.dto.response.SigninResponse;
 import org.example.expert.domain.auth.dto.response.SignupResponse;
 import org.example.expert.domain.auth.service.AuthService;
+import org.example.expert.util.api.ApiResult;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,12 +22,12 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/join")
-    public SignupResponse join(@Valid @RequestBody SignupRequest signupRequest) {
-        return authService.join(signupRequest);
+    public ResponseEntity<ApiResult<SignupResponse>> join(@Valid @RequestBody SignupRequest signupRequest) {
+        return ResponseEntity.ok(ApiResult.success(authService.join(signupRequest)));
     }
 
     @PostMapping("/login")
-    public SigninResponse login(@Valid @RequestBody SigninRequest signinRequest) {
-        return authService.login(signinRequest);
+    public ResponseEntity<ApiResult<SigninResponse>> login(@Valid @RequestBody SigninRequest signinRequest) {
+        return ResponseEntity.ok(ApiResult.success(authService.login(signinRequest)));
     }
 }
