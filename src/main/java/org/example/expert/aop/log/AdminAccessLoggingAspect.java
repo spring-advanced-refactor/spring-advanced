@@ -12,6 +12,7 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.example.expert.domain.log.admin.AdminAccessLog;
 import org.example.expert.domain.log.admin.AdminAccessLogRepository;
 import org.example.expert.domain.user.User;
+import org.example.expert.domain.user.UserRole;
 import org.example.expert.domain.user.dto.AuthUser;
 import org.example.expert.util.CustomUtil;
 import org.springframework.stereotype.Component;
@@ -32,28 +33,18 @@ import java.util.Map;
 public class AdminAccessLoggingAspect {
 
     private final AdminAccessLogRepository adminAccessLogRepository;
+    private static final String ADMIN_PATH = "/admin";
 
-    @Pointcut("@annotation(org.springframework.web.bind.annotation.PostMapping)")
-    public void postMapping() {
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.RequestMapping) || " +
+            "@annotation(org.springframework.web.bind.annotation.GetMapping) || " +
+            "@annotation(org.springframework.web.bind.annotation.PostMapping) || " +
+            "@annotation(org.springframework.web.bind.annotation.PutMapping) || " +
+            "@annotation(org.springframework.web.bind.annotation.DeleteMapping) || " +
+            "@annotation(org.springframework.web.bind.annotation.PatchMapping)")
+    public void apiMapping() {
     }
 
-    @Pointcut("@annotation(org.springframework.web.bind.annotation.GetMapping)")
-    public void getMapping() {
-    }
-
-    @Pointcut("@annotation(org.springframework.web.bind.annotation.PutMapping)")
-    public void putMapping() {
-    }
-
-    @Pointcut("@annotation(org.springframework.web.bind.annotation.DeleteMapping)")
-    public void deleteMapping() {
-    }
-
-    @Pointcut("@annotation(org.springframework.web.bind.annotation.PatchMapping)")
-    public void patchMapping() {
-    }
-
-    @Around("postMapping() || getMapping() || putMapping() || deleteMapping() || patchMapping()")
+    @Around("apiMapping()")
     public Object logAdminAccess(ProceedingJoinPoint joinPoint) throws Throwable {
 
         //url 가져오기
@@ -61,32 +52,65 @@ public class AdminAccessLoggingAspect {
         String uri = request.getRequestURI();
 
         //admin 경로가 아니라면 리턴
-        if (!uri.contains("/admin")) {
+        if (!isAdminRequest(uri)) {
+            return joinPoint.proceed();
+        }
+        //로그 필수 정보 가져오기 (사용자, 접근 시각, 요청 바디, 응답 바디, 요청 uri)
+        Long userId = getUserId(request);
+        UserRole userRole = getUserRole(request);
+
+        if (userId == null) {
+            log.warn("인증 실패: userId is null");
+            return joinPoint.proceed();
+        }
+        if (!isAuthorizedAdmin(userRole)) {
+            log.warn("권한 없는 유저의 관리자 API 접근 시도: {}", userId);
             return joinPoint.proceed();
         }
 
-        //로그 필수 정보 가져오기 (사용자, 접근 시각, 요청 바디, 응답 바디, 요청 uri)
-        Long userId = (Long) request.getAttribute("userId");
-        User user = User.fromAuthUser(new AuthUser(userId, null, null));
         LocalDateTime accessTime = LocalDateTime.now();
         String requestBody = getRequestBody(joinPoint);
-
         //관리자가 요청한 메서드 실행
         Object result = joinPoint.proceed();
-        String responseBody = getResponseBody(result);
-
         //로그 저장
-        AdminAccessLog adminAccessLog = AdminAccessLog.builder()
-                .accessTime(accessTime)
-                .user(user)
-                .requestBody(requestBody)
-                .responseBody(responseBody)
-                .requestUrl(uri)
-                .build();
-        adminAccessLogRepository.save(adminAccessLog);
-        log.info("admin API 접속 - 유저 ID: {}, 시각: {}, URL: {}", userId, accessTime, uri);
+        saveAccessLog(userId, uri, accessTime, requestBody, result);
 
         return result;
+    }
+
+
+    private void saveAccessLog(Long userId, String uri, LocalDateTime accessTime, String requestBody, Object result) {
+        try {
+            User user = User.fromAuthUser(new AuthUser(userId, null, null));
+            String responseBody = getResponseBody(result);
+            AdminAccessLog adminAccessLog = AdminAccessLog.builder()
+                    .accessTime(accessTime)
+                    .user(user)
+                    .requestBody(requestBody)
+                    .responseBody(responseBody)
+                    .requestUrl(uri)
+                    .build();
+            adminAccessLogRepository.save(adminAccessLog);
+            log.info("admin API 접속 - 유저 ID: {}, 시각: {}, URL: {}", userId, accessTime, uri);
+        } catch (Exception e) {
+            log.warn("admin API 접근 기록 저장 실패 - 유저 ID: {}, 시각: {}, URL: {}", userId, accessTime, uri, e);
+        }
+    }
+
+    private boolean isAuthorizedAdmin(UserRole userRole) {
+        return userRole == UserRole.ADMIN;
+    }
+
+    private boolean isAdminRequest(String uri) {
+        return uri != null && uri.contains(ADMIN_PATH);
+    }
+
+    private Long getUserId(HttpServletRequest request) {
+        return (Long) request.getAttribute("userId");
+    }
+
+    private UserRole getUserRole(HttpServletRequest request) {
+        return UserRole.of((String) request.getAttribute("userRole"));
     }
 
     private String getRequestBody(ProceedingJoinPoint joinPoint) {

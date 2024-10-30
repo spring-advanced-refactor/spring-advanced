@@ -1,15 +1,14 @@
 package org.example.expert.controller;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.example.expert.config.auth.valid.Auth;
 import org.example.expert.domain.user.dto.AuthUser;
-import org.example.expert.service.TodoService;
 import org.example.expert.dto.todo.request.TodoSaveRequest;
 import org.example.expert.dto.todo.response.TodoResponse;
 import org.example.expert.dto.todo.response.TodoSaveResponse;
+import org.example.expert.service.TodoService;
 import org.example.expert.util.api.ApiResult;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -33,8 +32,8 @@ public class TodoController {
 
     @GetMapping("/todos")
     public ResponseEntity<ApiResult<Page<TodoResponse>>> getTodos(
-            @RequestParam(defaultValue = "1") @Positive int page,
-            @RequestParam(defaultValue = "10") @Positive int size
+            @RequestParam(defaultValue = "1", value = "page") @Positive int page,
+            @RequestParam(defaultValue = "10", value = "size") @Positive int size
     ) {
         return ResponseEntity.ok(ApiResult.success(todoService.getTodos(page, size)));
     }

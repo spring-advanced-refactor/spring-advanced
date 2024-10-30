@@ -4,6 +4,8 @@ import org.example.expert.client.dto.WeatherDto;
 import org.example.expert.ex.ErrorCode;
 import org.example.expert.ex.ServerException;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -13,6 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Component
 public class WeatherClient {
@@ -24,17 +27,23 @@ public class WeatherClient {
     }
 
     public String getTodayWeather() {
-        ResponseEntity<WeatherDto[]> responseEntity =
-                restTemplate.getForEntity(buildWeatherApiUri(), WeatherDto[].class);
-        WeatherDto[] weatherArray = responseEntity.getBody();
+        ResponseEntity<List<WeatherDto>> responseEntity =
+                restTemplate.exchange(
+                        buildWeatherApiUri(),
+                        HttpMethod.GET,
+                        null,
+                        new ParameterizedTypeReference<List<WeatherDto>>() {
+                        }
+                );
+        List<WeatherDto> weatherList = responseEntity.getBody();
         if (!HttpStatus.OK.equals(responseEntity.getStatusCode())) {
             throw new ServerException(ErrorCode.FAILED_TO_GET_WEATHER_DATA);
         }
-        if (weatherArray == null || weatherArray.length == 0) {
+        if (weatherList == null || weatherList.isEmpty()) {
             throw new ServerException(ErrorCode.TOTAL_WEATHER_DATA_NOT_FOUND);
         }
         String today = getCurrentDate();
-        for (WeatherDto weatherDto : weatherArray) {
+        for (WeatherDto weatherDto : weatherList) {
             if (today.equals(weatherDto.getDate())) {
 
                 return weatherDto.getWeather();
