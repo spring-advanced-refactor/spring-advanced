@@ -1,18 +1,15 @@
 package org.example.expert.aop.auth;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.example.expert.domain.user.UserRole;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.example.expert.domain.user.dto.AuthUser;
 import org.example.expert.ex.ErrorCode;
 import org.example.expert.ex.ServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Aspect
 @Component
@@ -22,24 +19,25 @@ public class AuthAspect {
 
     @Around("@annotation(requireAuthenticatedUser)")
     public Object authenticatedUser(ProceedingJoinPoint proceedingJoinPoint, RequireAuthenticatedUser requireAuthenticatedUser) throws Throwable {
-        ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (requestAttributes == null) {
-            throw new ServerException(ErrorCode.CONTEXT_NOT_FOUND);
+        Object[] args = proceedingJoinPoint.getArgs();
+        MethodSignature signature = (MethodSignature) proceedingJoinPoint.getSignature();
+        Class<?>[] parameterTypes = signature.getParameterTypes();
+        AuthUser authUser = null;
+
+        for (int i = 0; i < args.length; i++) {
+            if (parameterTypes[i].equals(AuthUser.class)) {
+                authUser = (AuthUser) args[i];
+                break;
+            }
         }
-        HttpServletRequest request = requestAttributes.getRequest();
-        AuthUser authUser = extractAuthInfo(request);
+        if (authUser == null) {
+            log.error("인증 실패: AuthUser parameter not found");
+            throw new ServerException(ErrorCode.INVALID_AUTH_INFO);
+        }
+        //authAuser 내부 필드 검사
         validateAuthUser(authUser);
 
         return proceedingJoinPoint.proceed();
-    }
-
-
-    private AuthUser extractAuthInfo(HttpServletRequest request) {
-        return AuthUser.builder()
-                .id((Long) request.getAttribute("userId"))
-                .email((String) request.getAttribute("email"))
-                .userRole(UserRole.of((String) request.getAttribute("userRole")))
-                .build();
     }
 
     private void validateAuthUser(AuthUser authInfo) {
