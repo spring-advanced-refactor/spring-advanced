@@ -7,7 +7,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.example.expert.domain.user.UserRole;
 import org.example.expert.domain.user.dto.AuthUser;
 import org.example.expert.ex.ErrorCode;
-import org.example.expert.ex.InvalidRequestException;
 import org.example.expert.ex.ServerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,19 +28,11 @@ public class AuthAspect {
         }
         HttpServletRequest request = requestAttributes.getRequest();
         AuthUser authUser = extractAuthInfo(request);
-
         validateAuthUser(authUser);
-        validateUserRole(authUser, requireAuthenticatedUser);
+
         return proceedingJoinPoint.proceed();
     }
 
-    private void validateUserRole(AuthUser authUser, RequireAuthenticatedUser requireAuthenticatedUser) {
-        UserRole requireRole = requireAuthenticatedUser.requireRole();
-        if (requireRole != UserRole.USER && !requireRole.equals(authUser.getUserRole())) {
-            log.warn("권한 부족: required = {}, actual = {}", requireRole, authUser.getUserRole());
-            throw new InvalidRequestException(ErrorCode.FORBIDDEN_ACCESS);
-        }
-    }
 
     private AuthUser extractAuthInfo(HttpServletRequest request) {
         return AuthUser.builder()

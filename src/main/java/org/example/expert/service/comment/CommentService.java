@@ -6,7 +6,6 @@ import org.example.expert.domain.comment.Comment;
 import org.example.expert.domain.comment.CommentRepository;
 import org.example.expert.domain.todo.Todo;
 import org.example.expert.domain.user.User;
-import org.example.expert.domain.user.UserRole;
 import org.example.expert.domain.user.dto.AuthUser;
 import org.example.expert.dto.comment.request.CommentSaveRequest;
 import org.example.expert.dto.comment.response.CommentResponse;
@@ -27,7 +26,7 @@ public class CommentService {
     private final TodoService todoService;
 
     @Transactional
-    @RequireAuthenticatedUser(requireRole = UserRole.ADMIN)
+    @RequireAuthenticatedUser
     public CommentSaveResponse saveComment(AuthUser authUser, Long todoId, CommentSaveRequest commentSaveRequest) {
         User user = User.fromAuthUser(authUser);
         Todo todo = todoService.findByIdOrFail(todoId);

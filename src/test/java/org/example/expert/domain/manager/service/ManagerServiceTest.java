@@ -1,19 +1,20 @@
 package org.example.expert.domain.manager.service;
 
-import org.example.expert.domain.user.dto.AuthUser;
 import org.example.expert.domain.manager.Manager;
 import org.example.expert.domain.manager.ManagerRepository;
-import org.example.expert.service.ManagerService;
 import org.example.expert.domain.todo.Todo;
 import org.example.expert.domain.todo.TodoRepository;
-import org.example.expert.service.TodoService;
 import org.example.expert.domain.user.User;
-import org.example.expert.domain.user.UserRole;
 import org.example.expert.domain.user.UserRepository;
+import org.example.expert.domain.user.UserRole;
+import org.example.expert.domain.user.dto.AuthUser;
 import org.example.expert.dto.manager.request.ManagerSaveRequest;
 import org.example.expert.dto.manager.response.ManagerResponse;
 import org.example.expert.dto.manager.response.ManagerSaveResponse;
+import org.example.expert.ex.ErrorCode;
 import org.example.expert.ex.InvalidRequestException;
+import org.example.expert.service.ManagerService;
+import org.example.expert.service.TodoService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +29,8 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 class ManagerServiceTest {
@@ -50,25 +53,27 @@ class ManagerServiceTest {
         // given
         long todoId = 1L;
         given(todoService.findByIdOrFail(todoId))
-                .willThrow(new InvalidRequestException("Todo Not Found"));
+                .willThrow(new InvalidRequestException(ErrorCode.TODO_NOT_FOUND));
 
         // when & then
         InvalidRequestException exception = assertThrows(
                 InvalidRequestException.class, () -> managerService.getManagers(todoId));
-        assertEquals("Todo Not Found", exception.getMessage());
+
+        assertAll(
+                () -> assertEquals(ErrorCode.TODO_NOT_FOUND.getMsg(), exception.getMessage()),
+                () -> verify(todoService, times(1)).findByIdOrFail(todoId)
+        );
     }
 
     @Test
     @DisplayName("담당자 배정 시 Todo를 만든 유저가 존재하지 않으면 예외 발생")
     void saveManager_시_Todo를_만든_user가_null일_때__예외가_발생한다() {
         // given
+        Long todoId = 1L;
+        Long managerUserId = 2L;
+
         AuthUser authUser = new AuthUser(1L, "a@a.com", UserRole.USER);
-        long todoId = 1L;
-        long managerUserId = 2L;
-
-        Todo todo = new Todo();
-        ReflectionTestUtils.setField(todo, "user", null);
-
+        Todo todo = Todo.builder().user(null).build();
         ManagerSaveRequest managerSaveRequest = new ManagerSaveRequest(managerUserId);
 
         given(todoService.findByIdOrFail(todoId)).willReturn(todo);
@@ -78,7 +83,10 @@ class ManagerServiceTest {
                 managerService.saveManager(authUser, todoId, managerSaveRequest)
         );
 
-        assertEquals("해당 일정을 만든 유저가 존재하지 않습니다", exception.getMessage());
+        assertAll(
+                () -> assertEquals(ErrorCode.TODO_CREATOR_NOT_FOUND.getMsg(), exception.getMessage()),
+                () -> verify(todoService, times(1)).findByIdOrFail(todoId)
+        );
     }
 
     @Test // 테스트코드 샘플

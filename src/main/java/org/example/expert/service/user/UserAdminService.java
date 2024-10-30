@@ -16,7 +16,7 @@ public class UserAdminService {
     private final UserService userService;
 
     @Transactional
-    @RequireAuthenticatedUser(requireRole = UserRole.ADMIN)
+    @RequireAuthenticatedUser
     public void changeUserRole(AuthUser authUser, UserRoleChangeRequest userRoleChangeRequest) {
         User user = userService.findByIdOrFail(authUser.getId());
         user.updateRole(UserRole.of(userRoleChangeRequest.getRole()));

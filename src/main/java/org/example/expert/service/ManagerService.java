@@ -14,7 +14,6 @@ import org.example.expert.dto.manager.response.ManagerSaveResponse;
 import org.example.expert.dto.user.response.UserResponse;
 import org.example.expert.ex.ErrorCode;
 import org.example.expert.ex.InvalidRequestException;
-import org.example.expert.service.user.UserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,7 +27,6 @@ public class ManagerService {
     private final ManagerRepository managerRepository;
     private final UserRepository userRepository;
     private final TodoService todoService;
-    private final UserService userService;
 
     @Transactional
     @RequireAuthenticatedUser

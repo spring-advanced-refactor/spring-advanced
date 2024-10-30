@@ -65,6 +65,8 @@ public class JwtFilter implements Filter {
             chain.doFilter(request, response);
         } catch (CustomJwtException e) {
             setErrorResponse(httpResponse, e.getErrorCode().getStatus(), e.getErrorCode().getMsg());
+        } catch (InvalidRequestException e) {
+            setErrorResponse(httpResponse, e.getErrorCode().getStatus(), e.getErrorCode().getMsg());
         }
     }
 

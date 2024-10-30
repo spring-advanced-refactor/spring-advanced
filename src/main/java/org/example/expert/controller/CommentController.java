@@ -23,7 +23,7 @@ public class CommentController {
     @PostMapping("/todos/{todoId}/comments")
     public ResponseEntity<ApiResult<CommentSaveResponse>> saveComment(
             @Auth AuthUser authUser,
-            @PathVariable Long todoId,
+            @PathVariable(value = "todoId") Long todoId,
             @Valid @RequestBody CommentSaveRequest commentSaveRequest
     ) {
         return ResponseEntity.ok(ApiResult.success(commentService.saveComment(authUser, todoId, commentSaveRequest)));
